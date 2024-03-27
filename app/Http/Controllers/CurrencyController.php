@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use App\Services\CrawlerService;
 use App\Services\CurrencyService;
 use App\Http\Requests\GetCurrencyRequest;
-use App\Services\CrawlerService;
 
 class CurrencyController extends Controller
 {
@@ -30,13 +30,15 @@ class CurrencyController extends Controller
         if(!empty($founds['notFound'])){
             $crawler = $this->crawlerService->get($founds['notFound']);
         }
-        // dd($crawler);
+
         $currencyDto = [];
         if(!empty($crawler)){
             $currencyDto = $this->currencyService->transformCrawlerToCurrenctyDTO($crawler);
+            dd($currencyDto);
             // TODO: PODE SER UMA FILA
             $this->currencyService->store($currencyDto);
         }
-        dd($currencyDto);
+        $data = array_merge($founds['found'], $currencyDto);
+        return response()->json($data, Response::HTTP_OK);
     }
 }

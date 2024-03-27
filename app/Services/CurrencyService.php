@@ -40,7 +40,7 @@ class CurrencyService
             
             if(!is_null($currency)){
                 unset($strings[$key]);
-                $currency = $this->transformCurrencyToCurrenctyDTO($currency);
+                $currency = $this->transformCurrencyToCurrencyDTO($currency);
                 array_push($foundDataBase, $currency);
             };
         }
@@ -50,7 +50,7 @@ class CurrencyService
         ];
     }
 
-    private function transformCurrencyToCurrenctyDTO($data): CurrencyDTO
+    private function transformCurrencyToCurrencyDTO($data): array
     {
         $dto = new CurrencyDTO(
             $data->code, 
@@ -60,7 +60,7 @@ class CurrencyService
         );
 
         $dto->transformDBLocations($data->location->toArray());
-        return $dto;
+        return $dto->toArray();
     }
 
     public function store($data)
@@ -79,7 +79,7 @@ class CurrencyService
         }
     }
 
-    public function transformCrawlerToCurrenctyDTO($data)
+    public function transformCrawlerToCurrenctyDTO($data): array
     {
         return array_map(function ($value) {
             $dto = new CurrencyDTO(
