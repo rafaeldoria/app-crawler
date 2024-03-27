@@ -6,6 +6,7 @@ use App\Http\Controllers\DataController;
 use App\Http\Controllers\GoutteController;
 use App\Http\Controllers\PhanterController;
 use App\Http\Controllers\CrawllerController;
+use App\Http\Controllers\CurrencyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,7 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/data', [DataController::class, 'show']);
+Route::post('/data', [CurrencyController::class, 'get']);
 
 Route::get('/goutte', [GoutteController::class, 'index']);
 

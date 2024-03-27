@@ -5,26 +5,37 @@ namespace App\Services;
 use App\DTO\CurrencyDTO;
 use App\Repositories\CurrencyRepository;
 use App\Repositories\LocationRepository;
-use App\Repositories\Interfaces\ICurrencyRepository;
 
 class CurrencyService
 {
     private $currencyRepository;
+    private $locationRepository;
 
-    public function __construct(CurrencyRepository $currencyRepository)
+    public function __construct(
+        CurrencyRepository $currencyRepository,
+        LocationRepository $locationRepository
+    )
     {
         $this->currencyRepository = $currencyRepository;
+        $this->locationRepository = $locationRepository;
     }
 
-
-    public function get($strings): array
+    public function get($data): array
     {
+        $values = array_values($data);
+        $strings = '';
+        if(array_key_exists('code_list', $data) || array_key_exists('number_lists', $data)){
+            $strings = $values[0];
+        }else{
+            $strings = $values;
+        }
         $foundDataBase = [];
         foreach ($strings as $key => $value) {
             $field = 'code';
             if(is_numeric($value)){
                 $field = 'number';
             }
+
             $currency = $this->currencyRepository->get($field, $value);
             
             if(!is_null($currency)){
@@ -34,7 +45,7 @@ class CurrencyService
             };
         }
         return [
-            'notfound' => $strings,
+            'notFound' => $strings,
             'found' =>  $foundDataBase
         ];
     }
@@ -47,8 +58,56 @@ class CurrencyService
             $data->decimal, 
             $data->currency
         );
-        // dd($data->location->toArray());
+
         $dto->transformDBLocations($data->location->toArray());
         return $dto;
+    }
+
+    public function store($data)
+    {
+        foreach ($data as $key => $value) {
+            $currency_locations = $value['currency_locations'];
+            unset($value['currency_locations']);
+            $currency =$this->currencyRepository->store($value);
+            $currency = $currency->toArray();
+            if(!empty($currency_locations)){
+                foreach ($currency_locations as $key => $value) {
+                    $value['currency_id'] = $currency['id'];
+                    $this->locationRepository->store($value);
+                }
+            }
+        }
+    }
+
+    public function transformCrawlerToCurrenctyDTO($data)
+    {
+        return array_map(function ($value) {
+            $dto = new CurrencyDTO(
+                $value[0],
+                $value[1],
+                $value[2],
+                $value[3],
+            );
+            $currency_locations = [
+                'locations' => html_entity_decode(str_replace("&nbsp;", "", htmlentities($value[4][0]))) ?? null,
+                'icons' => $value[4][1] ?? null
+            ];
+            $dto->currency_locations($this->transformLocations($currency_locations));
+            return $dto->toArray();
+        }, $data);
+    }
+
+    private function transformLocations($currency_locations): array
+    {
+        $locations = explode(',',$currency_locations['locations']);
+
+        $icons = $currency_locations['icons'];
+        $data = array_map(function ($location, $key) use ($icons) {
+            return [
+                'location' => trim($location),
+                'icon' => isset($icons[$key]) ? $icons[$key] : ''
+            ];
+        }, $locations, array_keys($locations));
+        return $data;
     }
 }

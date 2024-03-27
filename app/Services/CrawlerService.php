@@ -6,12 +6,12 @@ use Goutte\Client;
 
 class CrawlerService
 {
-    public function show($substrings)
+    public function get($substrings)
     {
         $client = new Client();
 
         $url = env('URL_CRAWLER');
-    
+
         $crawler = $client->request('GET', $url);
     
         $busca = 'table.wikitable.sortable';

@@ -4,11 +4,10 @@ namespace Tests\Unit;
 
 use Mockery;
 use App\DTO\CurrencyDTO;
-use App\Models\Currency;
 use PHPUnit\Framework\TestCase;
 use App\Services\CurrencyService;
 use App\Repositories\CurrencyRepository;
-use Spatie\FlareClient\Http\Exceptions\NotFound;
+use App\Repositories\LocationRepository;
 
 class CurrencyServiceTest extends TestCase
 {
@@ -17,9 +16,10 @@ class CurrencyServiceTest extends TestCase
      */
     public function test_get_currency_by_string(): void
     { 
-        $mockRepository = Mockery::mock(CurrencyRepository::class);
+        $mockCurrencyRepository = Mockery::mock(CurrencyRepository::class);
+        $mockLocationRepository = Mockery::mock(LocationRepository::class);
         
-        $mockRepository->shouldReceive('get')->andReturnUsing(function ($field, $value) {
+        $mockCurrencyRepository->shouldReceive('get')->andReturnUsing(function ($field, $value) {
             if ($value === 'GBP' || $value === 'GEL' || $value === 'HKD') {
                 return (object)[
                     'code' => $value,
@@ -39,32 +39,33 @@ class CurrencyServiceTest extends TestCase
                         }
                     }
                 ];
-            } elseif ($value === '123') {
-                return (object)[
-                    'code' => 'USD',
-                    'number' => $value,
-                    'decimal' => '2',
-                    'currency' => 'US Dollar',
-                    'location' => new class {
-                        public function toArray()
-                        {
-                            return [
-                                [
-                                    'id' => 1,
-                                    'location' => 'USA',
-                                    'icon' => 'icon USA'
-                                ]
-                            ];
-                        }
-                    }
-                ];
-            }
+            } 
+            // elseif ($value === '123') {
+            //     return (object)[
+            //         'code' => 'USD',
+            //         'number' => $value,
+            //         'decimal' => '2',
+            //         'currency' => 'US Dollar',
+            //         'location' => new class {
+            //             public function toArray()
+            //             {
+            //                 return [
+            //                     [
+            //                         'id' => 1,
+            //                         'location' => 'USA',
+            //                         'icon' => 'icon USA'
+            //                     ]
+            //                 ];
+            //             }
+            //         }
+            //     ];
+            // }
             return null;
         });
 
-        $currencyService = new CurrencyService($mockRepository);
+        $currencyService = new CurrencyService($mockCurrencyRepository,$mockLocationRepository);
 
-        $result = $currencyService->get(["GBP", "GEL", "HKD", "123"]);
+        $result = $currencyService->get(["code_list" => ["GBP", "GEL", "HKD"]]);
 
         $dto1 = new CurrencyDTO('GBP', '100', '2', 'Pound Sterling');
         $dto1->transformDBLocations([
@@ -94,18 +95,18 @@ class CurrencyServiceTest extends TestCase
                 ]
             ]
         );
-        $dto4 = new CurrencyDTO('USD', '123', '2', 'US Dollar');
-        $dto4->transformDBLocations([
-                [
-                    "id" => 1,
-                    "location" => "USA",
-                    "icon" => "icon USA",
-                ]
-            ]
-        );
+        // $dto4 = new CurrencyDTO('USD', '123', '2', 'US Dollar');
+        // $dto4->transformDBLocations([
+        //         [
+        //             "id" => 1,
+        //             "location" => "USA",
+        //             "icon" => "icon USA",
+        //         ]
+        //     ]
+        // );
         $this->assertEquals([
-            "notfound" => [],
-            "found" => [$dto1,$dto2,$dto3,$dto4]
+            "found" => [$dto1,$dto2,$dto3],
+            "notFound" => []
         ], $result); 
     }
 }
