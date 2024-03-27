@@ -28,5 +28,6 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="URL_CRAWLER" value="https://pt.wikipedia.org/wiki/ISO_4217"/>
     </php>
 </phpunit>

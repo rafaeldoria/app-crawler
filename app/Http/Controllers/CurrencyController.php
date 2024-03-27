@@ -34,7 +34,6 @@ class CurrencyController extends Controller
         $currencyDto = [];
         if(!empty($crawler)){
             $currencyDto = $this->currencyService->transformCrawlerToCurrenctyDTO($crawler);
-            dd($currencyDto);
             // TODO: PODE SER UMA FILA
             $this->currencyService->store($currencyDto);
         }
