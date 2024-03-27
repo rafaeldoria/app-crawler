@@ -15,14 +15,12 @@ class CurrencyDTO
         int $number,
         int $decimal,
         string $currency,
-        array $currency_locations,
     )
     {
         $this->code = $code;
         $this->number = $number;
         $this->decimal = $decimal;
         $this->currency = $currency;
-        $this->currency_locations = $this->transformLocations($currency_locations);
     }
 
     public function toArray(): array
@@ -36,7 +34,7 @@ class CurrencyDTO
         ];
     }
 
-    private function transformLocations($currency_locations): array
+    public function transformLocations($currency_locations): array
     {
         $data = [];
         $locations = explode(',',$currency_locations['locations']);
@@ -50,6 +48,15 @@ class CurrencyDTO
         }, $locations, array_keys($locations));
 
         return $data;
+    }
 
+    public function transformDBLocations($locations)
+    {
+        foreach ($locations as $key => $value) {
+            $this->currency_locations[] = [
+                'location' => $value['location'],
+                'icon' => $value['icon']
+            ];
+        }
     }
 }

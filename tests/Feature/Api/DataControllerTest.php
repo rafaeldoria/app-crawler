@@ -11,9 +11,9 @@ class DataControllerTest extends TestCase
     /**
      * Test getting an API data.
      */
-    public function test_example(): void
+    public function test_data_controller_show(): void
     {
-        $data = ['code_list' => ["GBP", "GEL", "HKD"]];
+        $data = ['code_list' => [ "GBP", "GEL", "HKD", "123"]];
         $response = $this->postJson('/api/data', $data);
 
         $response->assertStatus(200)
