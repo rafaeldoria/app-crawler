@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\DTO\CurrencyDTO;
+use App\Services\RedisService;
 use App\Repositories\CurrencyRepository;
 use App\Repositories\LocationRepository;
-use App\Services\RedisService;
 
 class CurrencyService
 {
@@ -37,9 +37,11 @@ class CurrencyService
         }
         $foundDataBase = [];
         foreach ($strings as $key => $value) {
+            if(app()->environment() !== 'testing'){
+                $currency = $this->currencyGetCache($field, $value);
+            }else{
                 $currency = $this->currencyRepository->get($field, $value);
-            // $currency = $this->currencyGetCache($field, $value);
-            
+            }
             if(!is_null($currency)){
                 unset($strings[$key]);
                 $currency = $this->transformCurrencyToCurrencyDTO($currency);
@@ -58,7 +60,11 @@ class CurrencyService
         $redis = new RedisService();
         if(!$redis->exists($key)){
             $currency = $this->currencyRepository->get($field, $value);
-            $redis->set($key, $currency, 30);
+            if(!is_null($currency)){
+                $currency->location->toArray();
+                $currency->toArray();
+                $redis->set($key, $currency, 30);
+            }
             return $currency;
         }
         return $redis->get($key);
@@ -67,13 +73,13 @@ class CurrencyService
     private function transformCurrencyToCurrencyDTO($data): array
     {
         $dto = new CurrencyDTO(
-            $data->code, 
-            $data->number, 
-            $data->decimal, 
-            $data->currency
+            $data['code'], 
+            $data['number'], 
+            $data['decimal'], 
+            $data['currency']
         );
 
-        $dto->transformDBLocations($data->location->toArray());
+        $dto->transformDBLocations($data['location']);
         return $dto->toArray();
     }
 

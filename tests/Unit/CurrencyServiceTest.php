@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Mockery;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 use App\Services\CurrencyService;
 use App\Repositories\CurrencyRepository;
 use App\Repositories\LocationRepository;
@@ -20,21 +20,16 @@ class CurrencyServiceTest extends TestCase
         
         $mockCurrencyRepository->shouldReceive('get')->andReturnUsing(function ($field, $value) {
             if ($value === 'GBP' || $value === 'GEL' || $value === 'HKD') {
-                return (object)[
+                return [
                     'code' => $value,
                     'number' => '100',
                     'decimal' => '2',
                     'currency' => 'Pound Sterling',
-                    'location' => new class {
-                        public function toArray()
-                        {
-                            return [[
-                                'id' => 1,
-                                'location' => 'UK',
-                                'icon' => 'icon UK'
-                            ]];
-                        }
-                    }
+                    'location' => [[
+                        'id' => 1,
+                        'location' => 'UK',
+                        'icon' => 'icon UK'
+                    ]]
                 ];
             }
             return null;
@@ -95,21 +90,16 @@ class CurrencyServiceTest extends TestCase
         
         $mockCurrencyRepository->shouldReceive('get')->andReturnUsing(function ($field, $value) {
             if ($value === '123') {
-                return (object)[
+                return [
                     'code' => 'USD',
                     'number' => $value,
                     'decimal' => '2',
                     'currency' => 'US Dollar',
-                    'location' => new class {
-                        public function toArray()
-                        {
-                            return [[
-                                'id' => 1,
-                                'location' => 'USA',
-                                'icon' => 'icon USA'
-                            ]];
-                        }
-                    }
+                    'location' => [[
+                        'id' => 1,
+                        'location' => 'USA',
+                        'icon' => 'icon USA'
+                    ]],
                 ];
             }
             return null;

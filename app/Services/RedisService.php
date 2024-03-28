@@ -13,11 +13,11 @@ class RedisService
 
     public function set(string $key, $data, int $time = 20)
     {
-        Redis::set($key, $data, 'EX', $time);
+        Redis::set($key, serialize($data), 'EX', $time);
     }
 
     public function get(string $key)
     {
-        return Redis::get($key);
+        return unserialize(Redis::get($key));
     }
 }

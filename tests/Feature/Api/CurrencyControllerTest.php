@@ -23,7 +23,7 @@ class CurrencyControllerTest extends TestCase
         Location::factory(1)->create();
 
         $data = ['code_list' => [ $currency[0]->code, "GEL", "HKD", "ANG"]];
-        $response = $this->postJson('/api/data', $data);
+        $response = $this->postJson('/api/crawler', $data);
 
         $response->assertStatus(200)
             ->assertSee(['code','number','decimal','currency','currency_locations']);

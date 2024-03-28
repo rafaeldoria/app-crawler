@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\CrawlerService;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class CrawlerServiceTest extends TestCase
 {
