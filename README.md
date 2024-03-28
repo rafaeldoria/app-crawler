@@ -1,4 +1,4 @@
-# App-Transaction
+# App-Crawler
 
 Bem-vindo ao App-Crawler! Este é um sistema desenvolvido em Laravel que possibilita realizar um crawler, nesse caso uma página da Wikipedia.
 
