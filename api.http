@@ -1,0 +1,12 @@
+@apiulr = http://localhost:8180/api
+
+### GET /
+GET {{apiulr}}
+
+### POST /
+POST {{apiulr}}/crawler
+Content-Type: application/json
+
+{
+    "code": "AED"
+}

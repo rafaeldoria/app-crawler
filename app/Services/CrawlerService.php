@@ -2,18 +2,18 @@
 
 namespace App\Services;
 
-use Goutte\Client;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\BrowserKit\HttpBrowser;
 
 class CrawlerService
 {
     public function get($substrings)
     {
-        $client = new Client();
+        $client = new HttpBrowser(HttpClient::create());
 
         $url = env('URL_CRAWLER');
 
         $crawler = $client->request('GET', $url);
-    
         $busca = 'table.wikitable.sortable';
     
         $table = $crawler->filter($busca)->first();

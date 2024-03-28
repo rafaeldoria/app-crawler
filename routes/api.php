@@ -1,11 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DataController;
-use App\Http\Controllers\GoutteController;
-use App\Http\Controllers\PhanterController;
-use App\Http\Controllers\CrawllerController;
 use App\Http\Controllers\CurrencyController;
 
 /*
@@ -19,13 +14,10 @@ use App\Http\Controllers\CurrencyController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::get('/', function (){
+    return response()->json([
+        '-- APP CRAWLERS --'
+    ]);
 });
 
-Route::post('/data', [CurrencyController::class, 'get']);
-
-Route::get('/goutte', [GoutteController::class, 'index']);
-
-// Route::get('/phanter', [PhanterController::class, 'index']);
-
+Route::post('/crawler', [CurrencyController::class, 'get']);
