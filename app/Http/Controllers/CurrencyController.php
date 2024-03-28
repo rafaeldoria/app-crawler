@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Validation\Rule;
+use App\Jobs\StoreCurrencyJob;
 use App\Services\CrawlerService;
 use App\Services\CurrencyService;
 use App\Services\CurrencyValidator;
-use App\Http\Requests\GetCurrencyRequest;
-use Illuminate\Validation\ValidationException;
 
 class CurrencyController extends Controller
 {
@@ -40,7 +38,6 @@ class CurrencyController extends Controller
             }
             
             $founds = $this->currencyService->get($validated);
-            // dd(!empty($founds['notFound']));
             $crawler = [];
             if(!empty($founds['notFound'])){
                 $crawler = $this->crawlerService->get($founds['notFound']);
@@ -50,7 +47,9 @@ class CurrencyController extends Controller
             if(!empty($crawler)){
                 $currencyDto = $this->currencyService->transformCrawlerToCurrenctyDTO($crawler);
                 // TODO: PODE SER UMA FILA
-                $this->currencyService->store($currencyDto);
+                StoreCurrencyJob::dispatch($currencyDto)
+                    ->delay(now()->addSeconds(10))
+                    ->onQueue('storeCurrencies');
             }
             $data = array_merge($founds['found'], $currencyDto);
             return response()->json($data, Response::HTTP_OK);
