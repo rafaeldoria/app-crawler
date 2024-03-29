@@ -20,4 +20,4 @@ Route::get('/', function (){
     ]);
 });
 
-Route::post('/crawler', [CurrencyController::class, 'get']);
+Route::post('/crawler', [CurrencyController::class, 'getCurrencyInfo']);

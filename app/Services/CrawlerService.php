@@ -2,26 +2,28 @@
 
 namespace App\Services;
 
-use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\BrowserKit\HttpBrowser;
 
 class CrawlerService
 {
-    public function get($substrings)
+    protected $client;
+
+    public function __construct(HttpBrowser $client)
     {
-        $client = new HttpBrowser(HttpClient::create());
+        $this->client = $client;
+    }
 
-        $url = env('URL_CRAWLER');
+    public function getCurrencyInfo($substrings)
+    {
+        $crawler = $this->getHtmlData();
 
-        $crawler = $client->request('GET', $url);
-        $busca = 'table.wikitable.sortable';
-    
-        $table = $crawler->filter($busca)->first();
+        $table = $this->getWikiTable($crawler);
 
         $rows = $table->filter('tr')->each(function ($row) use ($substrings){
             $check = substr($row->text(), 0, 7);
             $search = explode(' ', $check);
             $intersection = array_intersect($search, $substrings);
+
             if (!empty($intersection)) {
                 $cells = $row->filter('td')->each(function ($cell, $i) {
                     if ($i == 4) {
@@ -44,5 +46,16 @@ class CrawlerService
             }
         });
         return array_filter($rows);
+    }
+
+    private function getWikiTable($crawler)
+    {
+        return $crawler->filter('table.wikitable.sortable')->first();
+    }
+
+    public function getHtmlData()
+    {
+        $url = config('crawler.url');
+        return $this->client->request('GET', $url);
     }
 }

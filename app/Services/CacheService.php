@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Redis;
 
-class RedisService
+class CacheService
 {
     public function exists(string $key)
     {

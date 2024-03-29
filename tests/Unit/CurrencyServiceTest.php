@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Mockery;
 use Tests\TestCase;
+use App\Services\CacheService;
 use App\Services\CurrencyService;
 use App\Repositories\CurrencyRepository;
 use App\Repositories\LocationRepository;
@@ -17,6 +18,9 @@ class CurrencyServiceTest extends TestCase
     { 
         $mockCurrencyRepository = Mockery::mock(CurrencyRepository::class);
         $mockLocationRepository = Mockery::mock(LocationRepository::class);
+        $mockCacheService = Mockery::mock(CacheService::class);
+        $mockCacheService->shouldReceive('exists')->andReturn(false);
+        $mockCacheService->shouldReceive('set')->andReturn(true);
         
         $mockCurrencyRepository->shouldReceive('get')->andReturnUsing(function ($field, $value) {
             if ($value === 'GBP' || $value === 'GEL' || $value === 'HKD') {
@@ -35,9 +39,9 @@ class CurrencyServiceTest extends TestCase
             return null;
         });
 
-        $currencyService = new CurrencyService($mockCurrencyRepository,$mockLocationRepository);
+        $currencyService = new CurrencyService($mockCurrencyRepository,$mockLocationRepository,$mockCacheService);
 
-        $result = $currencyService->get(["code_list" => ["GBP", "GEL", "HKD"]]);
+        $result = $currencyService->getCurrencyInfo(["code_list" => ["GBP", "GEL", "HKD"]]);
 
         $data = [
             "notFound" => [],
@@ -87,6 +91,9 @@ class CurrencyServiceTest extends TestCase
     { 
         $mockCurrencyRepository = Mockery::mock(CurrencyRepository::class);
         $mockLocationRepository = Mockery::mock(LocationRepository::class);
+        $mockCacheService = Mockery::mock(CacheService::class);
+        $mockCacheService->shouldReceive('exists')->andReturn(false);
+        $mockCacheService->shouldReceive('set')->andReturn(true);
         
         $mockCurrencyRepository->shouldReceive('get')->andReturnUsing(function ($field, $value) {
             if ($value === '123') {
@@ -105,9 +112,9 @@ class CurrencyServiceTest extends TestCase
             return null;
         });
 
-        $currencyService = new CurrencyService($mockCurrencyRepository,$mockLocationRepository);
+        $currencyService = new CurrencyService($mockCurrencyRepository,$mockLocationRepository,$mockCacheService);
 
-        $result = $currencyService->get(["code" => "123"]);
+        $result = $currencyService->getCurrencyInfo(["code" => "123"]);
 
         $data = [
             "notFound" => [],
@@ -135,6 +142,10 @@ class CurrencyServiceTest extends TestCase
     { 
         $mockCurrencyRepository = Mockery::mock(CurrencyRepository::class);
         $mockLocationRepository = Mockery::mock(LocationRepository::class);
+        $mockCacheService = Mockery::mock(CacheService::class);
+        $mockCacheService->shouldReceive('exists')->andReturn(false);
+        $mockCacheService->shouldReceive('set')->andReturn(true);
+
         $mockCurrencyRepository->shouldReceive('get')->andReturnUsing(function ($field, $value) {
             if ($value === 'HJK' || $value === 'ZXC' || $value === 'SDF') {
                 return (object)[
@@ -157,9 +168,9 @@ class CurrencyServiceTest extends TestCase
             return null;
         });
 
-        $currencyService = new CurrencyService($mockCurrencyRepository,$mockLocationRepository);
+        $currencyService = new CurrencyService($mockCurrencyRepository,$mockLocationRepository,$mockCacheService);
 
-        $result = $currencyService->get(["code_list" => ["CFB", "TGB", "POL"]]);
+        $result = $currencyService->getCurrencyInfo(["code_list" => ["CFB", "TGB", "POL"]]);
 
         $data = [
             "notFound" => [

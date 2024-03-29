@@ -3,25 +3,51 @@
 namespace App\Services;
 
 use App\DTO\CurrencyDTO;
-use App\Services\RedisService;
+use App\Services\CacheService;
 use App\Repositories\CurrencyRepository;
 use App\Repositories\LocationRepository;
 
 class CurrencyService
 {
-    private $currencyRepository;
-    private $locationRepository;
+    const DEFAULT_CACHE_TIME = 30; 
+
+    private CurrencyRepository $currencyRepository;
+    private LocationRepository $locationRepository;
+    private CacheService $cacheService;
 
     public function __construct(
         CurrencyRepository $currencyRepository,
-        LocationRepository $locationRepository
+        LocationRepository $locationRepository,
+        CacheService $cacheService
     )
     {
         $this->currencyRepository = $currencyRepository;
         $this->locationRepository = $locationRepository;
+        $this->cacheService = $cacheService;
     }
 
-    public function get($data): array
+    public function getCurrencyInfo(array $data): array
+    {
+        list($field, $strings) = $this->getParams($data);
+
+        $foundDataBase = [];
+        foreach ($strings as $key => $value) {
+            $currency = $this->currencyGetCache($field, $value);
+
+            if(!is_null($currency)){
+                unset($strings[$key]);
+                $currency = $this->transformToDTO($currency);
+                array_push($foundDataBase, $currency);
+            };
+        }
+        
+        return [
+            'notFound' => $strings,
+            'found' =>  $foundDataBase
+        ];
+    }
+
+    private function getParams(array $data): array
     {
         $field = 'code';
         if(array_key_exists('number', $data) || array_key_exists('number_lists', $data)){
@@ -30,47 +56,35 @@ class CurrencyService
 
         $values = array_values($data);
         $strings = '';
+
         if(array_key_exists('code_list', $data) || array_key_exists('number_lists', $data)){
             $strings = $values[0];
-        }else{
+        } else{
             $strings = $values;
         }
-        $foundDataBase = [];
-        foreach ($strings as $key => $value) {
-            if(app()->environment() !== 'testing'){
-                $currency = $this->currencyGetCache($field, $value);
-            }else{
-                $currency = $this->currencyRepository->get($field, $value);
-            }
-            if(!is_null($currency)){
-                unset($strings[$key]);
-                $currency = $this->transformCurrencyToCurrencyDTO($currency);
-                array_push($foundDataBase, $currency);
-            };
-        }
+
         return [
-            'notFound' => $strings,
-            'found' =>  $foundDataBase
+            $field, 
+            $strings
         ];
     }
 
     private function currencyGetCache($field, $value)
     {
         $key = 'currency.service.repository.get.'.md5($field).'.'.md5($value);
-        $redis = new RedisService();
-        if(!$redis->exists($key)){
+
+        if(!$this->cacheService->exists($key)){
             $currency = $this->currencyRepository->get($field, $value);
             if(!is_null($currency)){
-                $currency->location->toArray();
-                $currency->toArray();
-                $redis->set($key, $currency, 30);
+                $this->cacheService->set($key, $currency, self::DEFAULT_CACHE_TIME);
             }
             return $currency;
         }
-        return $redis->get($key);
+
+        return $this->cacheService->get($key);
     }
 
-    private function transformCurrencyToCurrencyDTO($data): array
+    private function transformToDTO($data): array
     {
         $dto = new CurrencyDTO(
             $data['code'], 
